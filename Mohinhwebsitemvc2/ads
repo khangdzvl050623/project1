@@ -1,0 +1,85 @@
+<?php
+// Lấy ID danh mục từ URL, nếu có, hoặc đặt mặc định là 0
+$iddm = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+// Lấy danh sách tất cả các danh mục
+$dsdm = getall_dm();
+
+// Thêm tùy chọn "All" vào đầu danh sách danh mục
+array_unshift($dsdm, ['id' => 0, 'tendm' => 'All']); // Chèn vào đầu danh sách
+
+// Xác định tên của danh mục đã chọn
+$tendm = "All"; // Giá trị mặc định
+foreach ($dsdm as $dm) {
+    if ($dm['id'] == $iddm) {
+        $tendm = $dm['tendm'];
+        break;
+    }
+}
+
+// Lấy sản phẩm dựa trên danh mục
+$dssp = ($iddm > 0) ? get_sanpham_by_danhmuc($iddm) : getall_sanpham(); // Sử dụng ID 0 hoặc không để lấy tất cả sản phẩm
+
+?>
+
+<div class="navbar align-self-center d-flex">
+    <!-- Phần giao diện điều hướng -->
+</div>
+
+<!-- Nội dung chính -->
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-3">
+            <h1 class="h2 pb-4">Categories</h1>
+            <ul class="list-unstyled templatemo-accordion">
+                <li class="pb-3">
+                    <ul class="list-unstyled pl-3">
+                        <?php
+                        foreach ($dsdm as $dm) {
+                            $url = ($dm['id'] > 0) ? "index.php?act=shop&id=" . $dm['id'] : "index.php?act=shop"; // URL cho "All" và các danh mục khác
+                            $activeClass = ($dm['id'] == $iddm) ? "font-weight-bold" : ""; // Đánh dấu danh mục hiện tại
+                            echo '<li><a class="text-decoration-none ' . $activeClass . '" href="' . $url . '">' . $dm['tendm'] . '</a></li>';
+                        }
+                        ?>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-lg-9">
+            <!-- Hiển thị tên danh mục đã chọn -->
+            <h2><?php echo $tendm; ?></h2>
+
+            <!-- Hiển thị sản phẩm theo danh mục -->
+            <div class="row">
+                <?php
+                if (isset($dssp) && is_array($dssp) && count($dssp) > 0) {
+                    foreach ($dssp as $sp) {
+                        echo '
+                        <div class="col-md-4">
+                            <div class="card mb-4 product-wap rounded-0">
+                                <div class="card rounded-0">
+                                    <img class="card-img rounded-0 img-fluid" src="../../admin/uploads/' . $sp['img'] . '">
+                                    <div class="card-img-overlay rounded-0 product-overlay d-flex align-items-center justify-content-center">
+                                        <ul class="list-unstyled">
+                                            <li><a class="btn btn-success text-white" href="index.php?act=shop-single&id=' . $sp['id'] . '"><i class="far fa-heart"></i></a></li>
+                                            <li><a class="btn btn-success text-white mt-2" href="index.php?act=shop-single&id=' . $sp['id'] . '"><i class="far fa-eye"></i></a></li>
+                                            <li><a class="btn btn-success text-white mt-2" href="index.php?act=shop-single&id=' . $sp['id'] . '"><i class="fas fa-cart-plus"></i></a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <a href="index.php?act=shop-single&id=' . $sp['id'] . '" class="h3 text-decoration-none">' . $sp['tensanpham'] . '</a>
+                                    <p class="text-center mb-0">' . number_format($sp['gia'], 0, ',', '.') . ' VND</p>
+                                </div>
+                            </div>
+                        </div>';
+                    }
+                } else {
+                    echo "<p>No products found for this category.</p>";
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+</div>
